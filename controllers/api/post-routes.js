@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { Model, EmptyResultError } = require('sequelize/types');
-const { User, Post, Vote } = require('../../models');
+const { User, Post, Vote, Comment } = require('../../models');
 const sequelize = require('../../config/connection');
 
 router.get('/', (req, res) => {
@@ -16,13 +16,21 @@ router.get('/', (req, res) => {
         order: [['created_at', 'DESC']],
 
     include: [
+        // include the Comment model here:
         {
+        model: Comment,
+        attributes: ['id', 'comment_text', 'post_id', 'user_id', 'created_at'],
+        include: {
         model: User,
         attributes: ['username']
        }
-    ]
-
-  })
+    },
+    {
+        model: User,
+        attributes: ['username']
+    }
+  ]
+})
   .then(dbPostData => res.json(dbPostData))
   .catch(err => {
       console.log(err);
@@ -45,7 +53,11 @@ router.get('/:id', (req, res) => {
         include: [
             {
                 model: Post,
-                attributes: ['id', 'title', 'post_url', 'created_at']
+                attributes: ['id', 'title', 'post_url', 'created_at'],
+                include: {
+                    model: Comment,
+                    attributes: ['id', 'comment_text', 'post_id', 'user_id', 'created_at'],
+                }
             },
             {
                 model: Post,
